@@ -61,6 +61,31 @@ claude mcp add lecture-scribe -e LSCRIBE_MODEL=medium \
   -- /Users/you/coding/lecture-scribe/.venv/bin/lecture-scribe mcp
 ```
 
+**Codex (CLI, IDE-расширение, приложение).** Добавьте сервер в `~/.codex/config.toml` (или в `.codex/config.toml` доверенного проекта):
+
+```toml
+[mcp_servers.lecture-scribe]
+command = "/Users/you/coding/lecture-scribe/.venv/bin/lecture-scribe"
+args = ["mcp"]
+startup_timeout_sec = 30   # по умолчанию 10 с
+tool_timeout_sec = 120     # по умолчанию 60 с, расшифровка ждёт до 40 с за вызов
+
+[mcp_servers.lecture-scribe.env]
+LSCRIBE_MODEL = "medium"
+LSCRIBE_NOTES = "/Users/you/lecture-notes"
+```
+
+Перезапустите Codex и введите `/mcp`: в списке должен быть `lecture-scribe`. В приложении то же делается через Settings → MCP servers → Add server → STDIO (команда и аргументы те же), затем Restart.
+
+У Codex нет браузерных инструментов Claude, поэтому адрес видео агент сам со страницы не достанет. Дайте ему прямой адрес: для Лекториума это `https://player.vimeo.com/video/<id>` и referer `https://mooc.lektorium.tv/`. Порядок действий вместо скилла опишите в `AGENTS.md` проекта или в `~/.codex/AGENTS.md`:
+
+```markdown
+## Лекции без субтитров
+Используй MCP lecture-scribe: `read_index` → `transcribe_video(source, referer=<адрес сайта>, language="ru", title=...)` →
+`job_status` до `done` → `get_transcript` (длинные: `get_chunks`) → конспект на русском с таймкодами →
+`save_notes(title, content, gist, job_id, source)`. Сомнительные термины Whisper помечай, не исправляй молча.
+```
+
 Папки агенту подключать не нужно: заметки пишет сам MCP-процесс.
 
 ## Как пользоваться
