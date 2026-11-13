@@ -25,7 +25,7 @@ MCP-сервер для Claude: расшифровывает видео из п�
 ## Установка
 
 ```bash
-git clone <этот-репозиторий> ~/coding/lecture-scribe
+git clone https://github.com/ArtiomVlasov/lecture-scribe ~/coding/lecture-scribe
 cd ~/coding/lecture-scribe
 python3.12 -m venv .venv
 source .venv/bin/activate
