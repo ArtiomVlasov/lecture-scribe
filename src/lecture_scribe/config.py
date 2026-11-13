@@ -2,11 +2,8 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
-
-HOST = os.environ.get("LSCRIBE_HOST", "127.0.0.1")
-PORT = int(os.environ.get("LSCRIBE_PORT", "8765"))
-SERVER_URL = os.environ.get("LSCRIBE_URL", f"http://{HOST}:{PORT}")
 
 DATA_DIR = Path(os.environ.get("LSCRIBE_DATA", Path.home() / ".lecture-scribe")).expanduser()
 JOBS_DIR = DATA_DIR / "jobs"
@@ -26,9 +23,6 @@ COOKIES_FILE = os.environ.get("LSCRIBE_COOKIES_FILE") or None
 # Test hook: "fake" skips Whisper and returns canned segments.
 BACKEND = os.environ.get("LSCRIBE_BACKEND", "whisper")
 
-
 # GUI apps (Claude Desktop) start MCP servers with a minimal PATH: make sure ffmpeg / yt-dlp are found.
-import sys  # noqa: E402
-
 _extra_path = [str(Path(sys.executable).parent), "/opt/homebrew/bin", "/usr/local/bin"]
 os.environ["PATH"] = os.pathsep.join(_extra_path + [os.environ.get("PATH", "")])

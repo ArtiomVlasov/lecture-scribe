@@ -46,20 +46,6 @@ def to_txt(segments: Iterable[Segment], target_seconds: float = 25.0) -> str:
     return "\n".join(f"[{ts(s['start'])}] {s['text']}" for s in merge(segments, target_seconds))
 
 
-def to_srt(segments: Iterable[Segment]) -> str:
-    blocks = []
-    for i, s in enumerate(segments, 1):
-        blocks.append(f"{i}\n{ts(s['start'], srt=True)} --> {ts(s['end'], srt=True)}\n{s['text'].strip()}\n")
-    return "\n".join(blocks)
-
-
-def to_vtt(segments: Iterable[Segment]) -> str:
-    body = "\n".join(
-        f"{ts(s['start'], vtt=True)} --> {ts(s['end'], vtt=True)}\n{s['text'].strip()}\n" for s in segments
-    )
-    return "WEBVTT\n\n" + body
-
-
 def window(segments: Iterable[Segment], start: float = 0.0, end: float | None = None) -> list[Segment]:
     """Segments overlapping [start, end)."""
     return [s for s in segments if s["end"] > start and (end is None or s["start"] < end)]

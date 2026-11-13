@@ -1,7 +1,7 @@
 """MCP server (stdio): lets an agent transcribe videos and keep lecture notes by itself.
 
-Runs on the user's machine, so it needs no HTTP service, no tunnels and no files
-shuttled by hand. Register it once in Claude Desktop / Claude Code (see docs/AGENT.md).
+Runs on the user's machine: no HTTP service, no tunnels, no files shuttled by hand.
+Register it once in Claude Desktop / Claude Code (see README.md).
 """
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import time
 from mcp.server.fastmcp import FastMCP
 
 from . import formats, notes, store
-from .server import JobRequest, create_job
+from .jobs import JobRequest, create_job
 
 mcp = FastMCP("lecture-scribe")
 

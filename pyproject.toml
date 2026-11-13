@@ -4,17 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lecture-scribe"
-version = "0.1.0"
-description = "Local video transcription service + Claude skill: turn any web-player video into a timestamped transcript an agent can summarize."
+version = "0.2.0"
+description = "MCP server: local Whisper transcription of any web-player video plus a notes memory, so an agent can write lecture summaries on its own."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = [
-  "fastapi>=0.110",
-  "uvicorn>=0.29",
   "faster-whisper>=1.0",
   "yt-dlp>=2024.0",
-  "httpx>=0.27",
   "numpy",
   "mcp>=1.2,<2",
 ]
