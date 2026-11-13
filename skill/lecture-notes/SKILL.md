@@ -7,7 +7,16 @@ description: Turn a video on a web page (LMS player, lecture, course, recording)
 
 Videos with no subtitles are handled by a **local service** (`lecture-scribe`, Whisper inside) that returns a timestamped transcript. You never transcribe audio yourself: you find the media URL, ask the service, then read text.
 
-## 0. Check the service
+## MCP mode (preferred, fully autonomous)
+
+If tools named `transcribe_video`, `job_status`, `get_transcript`, `get_chunks`, `save_notes`, `read_index`, `read_note` are available (MCP server `lecture-scribe`, running on the user's machine), use them and ignore the CLI/HTTP parts below; no files need to be moved by hand.
+
+1. `read_index` — is this lecture already covered? If yes, answer from `read_note` and stop.
+2. Find the media URL (step 1 below), then `transcribe_video(source, referer=<site origin>, language="ru", title=...)`. If the status is not `done`, call `job_status(job_id)` repeatedly (it waits up to 40 s per call; a lecture takes minutes).
+3. `get_transcript(job_id)` for short videos, `get_chunks(job_id, 10)` for long ones; `get_transcript(job_id, start_seconds, end_seconds)` for a specific moment.
+4. Write the notes (step 4 below), then `save_notes(title, content, gist, job_id, source)` — this is the memory; later sessions find it via `read_index`.
+
+## 0. Check the service (CLI/HTTP mode, when no MCP tools exist)
 
 ```bash
 curl -s http://127.0.0.1:8765/health

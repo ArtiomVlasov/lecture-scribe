@@ -44,6 +44,12 @@ def cmd_serve(a):
     uvicorn.run("lecture_scribe.server:app", host=a.host, port=a.port, log_level="info")
 
 
+def cmd_mcp(a):
+    from .mcp_server import main as mcp_main
+
+    mcp_main()
+
+
 def cmd_submit(a):
     headers = dict(h.split(":", 1) for h in (a.header or []))
     body = {
@@ -105,6 +111,9 @@ def main(argv=None):
     s.add_argument("--host", default=config.HOST)
     s.add_argument("--port", type=int, default=config.PORT)
     s.set_defaults(fn=cmd_serve)
+
+    s = sub.add_parser("mcp", help="run as MCP server over stdio (for Claude Desktop / Claude Code)")
+    s.set_defaults(fn=cmd_mcp)
 
     s = sub.add_parser("submit", help="queue a video for transcription")
     s.add_argument("source", help="page URL, direct .m3u8/.mp4 URL, or local file")

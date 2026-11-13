@@ -1,34 +1,56 @@
 # Как подключить агента
 
-Агенту нужны две вещи: скилл `skill/lecture-notes` и доступ к сервису `lecture-scribe`.
+Лучший способ — **MCP-сервер**: он запускается на вашем компьютере, агент получает инструменты (расшифровать видео, прочитать текст, сохранить конспект) и работает сам, без HTTP-сервиса, туннелей и ручных файлов. Модель Whisper запускается внутри него.
 
-## Claude Code (агент работает в терминале на вашем Mac)
-
-1. Скопировать скилл: `cp -r skill/lecture-notes ~/.claude/skills/` (для всех проектов) или в `.claude/skills/` проекта.
-2. Запустить сервис в отдельном терминале: `lecture-scribe serve`.
-3. В `CLAUDE.md` проекта (или `~/.claude/CLAUDE.md`) добавить:
-   ```
-   Лекции и видео без субтитров обрабатывай скиллом lecture-notes (сервис lecture-scribe на localhost:8765).
-   Конспекты храни в ~/lecture-notes/, перед работой читай ~/lecture-notes/INDEX.md.
-   ```
-4. Дальше просто: «Составь конспект: <ссылка на страницу лекции>».
-
-## Облачный агент / Cowork (агент не видит localhost вашего Mac)
-
-Сервис доступен только с вашего компьютера, поэтому транскрипт передаётся через подключённую папку:
+## 1. Один раз: установка
 
 ```bash
-lecture-scribe submit "<url потока>" --referer "<страница>" --language ru --wait
-lecture-scribe get <id> > ~/coding/lecture-scribe/transcript.txt     # или в любую подключённую папку
+cd ~/coding/lecture-scribe && source .venv/bin/activate
+pip install -e .          # подтянет mcp, numpy
+which lecture-scribe      # путь понадобится ниже: /Users/archi/coding/lecture-scribe/.venv/bin/lecture-scribe
 ```
 
-Скажите агенту: «возьми transcript.txt, составь конспект и сохрани по правилам скилла lecture-notes».
+## 2. Один раз: регистрация
+
+**Claude Desktop / Cowork.** Откройте `~/Library/Application Support/Claude/claude_desktop_config.json` (или Settings → Developer → Edit Config) и добавьте:
+
+```json
+{
+  "mcpServers": {
+    "lecture-scribe": {
+      "command": "/Users/archi/coding/lecture-scribe/.venv/bin/lecture-scribe",
+      "args": ["mcp"],
+      "env": { "LSCRIBE_MODEL": "medium", "LSCRIBE_NOTES": "/Users/archi/lecture-notes" }
+    }
+  }
+}
+```
+
+Полностью перезапустите приложение. У агента появятся инструменты `transcribe_video`, `job_status`, `get_transcript`, `get_chunks`, `save_notes`, `read_index`, `read_note`, `list_jobs`.
+
+**Claude Code.**
+
+```bash
+claude mcp add lecture-scribe -e LSCRIBE_MODEL=medium -- /Users/archi/coding/lecture-scribe/.venv/bin/lecture-scribe mcp
+```
+
+И скилл (необязательно, но он объясняет агенту порядок действий): `cp -r skill/lecture-notes ~/.claude/skills/`.
+
+## 3. Использование
+
+Пишете агенту: «Составь конспект лекции <ссылка на страницу курса>». Агент сам находит видео на странице, вызывает `transcribe_video`, ждёт, читает текст, пишет конспект и сохраняет его через `save_notes`.
+
+Первая расшифровка долгая (скачивание модели и сама лекция), следующие обращения к той же ссылке мгновенные (кэш).
 
 ## Память агента
 
-Скилл ведёт папку заметок (по умолчанию `~/lecture-notes/`, либо `./notes/` внутри подключённой папки):
+`save_notes` пишет в `LSCRIBE_NOTES` (по умолчанию `~/lecture-notes`) файл `<slug>.md` и строку в `INDEX.md`. `read_index` читается перед новой работой: так агент помнит, о чём шла речь в прошлых лекциях, и отвечает на вопросы по конспектам, не трогая видео. Папку подключать к агенту не нужно: чтение и запись идут через MCP-инструменты.
 
-- `INDEX.md` — одна строка на лекцию: название, суть в одно предложение, файл, id задачи.
-- `<slug>.md` — конспект: метаданные, краткое содержание, главы с таймкодами, термины, нерешённые вопросы.
+## Если MCP недоступен (запасной вариант)
 
-Перед новой задачей агент читает `INDEX.md`, поэтому помнит, о чём шла речь в прошлых лекциях, и не расшифровывает одно видео дважды. На вопросы «что было в лекции про X» он отвечает из конспекта и лезет в сырой транскрипт только за деталями.
+Запустите `lecture-scribe serve`, а агенту в терминале Claude Code дайте скилл: он ходит в сервис по `localhost:8765` командами CLI. Облачному агенту без доступа к вашему компьютеру придётся передавать транскрипт файлом: `lecture-scribe get <id> > transcript.txt` в подключённую папку.
+
+## Что может пойти не так
+
+- Приложение запускает MCP-сервер с урезанным `PATH`; код сам добавляет `/opt/homebrew/bin` и каталог venv, чтобы нашлись `ffmpeg` и `yt-dlp`.
+- Если инструменты не появились, откройте логи MCP в Claude Desktop (`~/Library/Logs/Claude/mcp-server-lecture-scribe.log`) и запустите руками `lecture-scribe mcp`, чтобы увидеть ошибку импорта.
