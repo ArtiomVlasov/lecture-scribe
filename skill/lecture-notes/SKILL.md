@@ -15,11 +15,14 @@ curl -s http://127.0.0.1:8765/health
 
 If it is not running, ask the user to start it in a terminal (`lecture-scribe serve`) — it needs their machine's CPU/GPU and cookies. Do not try to install Whisper in the sandbox. If you are working in the user's own shell, you may start it in the background yourself.
 
+**No access to localhost** (cloud/sandboxed agent, the service runs on the user's Mac): use the file handoff. Give the user the two commands (`lecture-scribe submit ... --wait`, then `lecture-scribe get <id> > <connected-folder>/transcript.txt`), then read the file and continue from step 4. Everything else is the same.
+
 ## 1. Find the media URL
 
 Prefer, in this order:
 
 1. **Page URL itself** — works for YouTube/Vimeo and many players (yt-dlp handles it). Try it first.
+   Many LMS pages (Open edX / Лекториум) embed a **Vimeo or YouTube iframe**: look at `[...document.querySelectorAll('iframe')].map(f => f.src)`; for `https://player.vimeo.com/video/<ID>` submit that URL with `--referer "<site origin>/"`. If yt-dlp asks for a hash, the iframe `src` carries `?h=…`: browser tools hide query strings, so ask the user to paste the full iframe src.
 2. **Browser tools** (Claude in Chrome / built-in browser), with the lecture page open and the video started:
    - JS in the page (also try inside the player iframe):
      ```js
@@ -68,6 +71,16 @@ Short video (< ~40 min): read it whole. Long video: read `chunks` one by one, wr
 **Вопросы по месту** — fetch the window around the timestamp, answer, cite `[HH:MM:SS]`.
 
 If the user asks you to *watch* the video too (slides, formulas on screen), use your native video/screenshot ability for those moments only; the transcript is the source for what was said.
+
+## 5. Remember it (notes memory)
+
+After writing a конспект, save it so future sessions know what the lecture was about.
+
+- Notes dir: `$LSCRIBE_NOTES`, else `~/lecture-notes/` (or `./notes/` inside a connected folder when you cannot write to home). Create it if missing.
+- File `<slug>.md` with frontmatter `title, source (page url), media (url used), job_id, duration, language, model, date`, then: one-paragraph summary, chapters with timestamps, key terms, open questions / things to verify.
+- Update `INDEX.md`: one line per lecture — `- [<title>](<slug>.md) — <one-sentence gist> (job <id>, <duration>)`. Replace the line if the lecture is already there.
+- **Before** starting work on a lecture link: read `INDEX.md`. If the lecture is already there, answer from its note and only call `lecture-scribe get <id> --start/--end` for details. When the user asks about "the lecture on X" or compares lectures, search `INDEX.md` and the notes first.
+- Keep notes factual and in the user's language; never store credentials, cookies or signed URLs.
 
 ## Rules
 

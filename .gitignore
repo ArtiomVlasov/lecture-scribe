@@ -8,3 +8,5 @@ build/
 *.mp3
 *.mp4
 cookies.txt
+transcript*.txt
+notes/

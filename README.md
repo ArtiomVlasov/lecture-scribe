@@ -26,6 +26,8 @@ lecture-scribe serve        # http://127.0.0.1:8765
 
 При первом запуске faster-whisper скачает модель (`medium` ≈ 1.5 ГБ).
 
+Подробное руководство по установке на macOS с разбором ошибок: [docs/SETUP-MAC.md](docs/SETUP-MAC.md). Подключение агента и память конспектов: [docs/AGENT.md](docs/AGENT.md).
+
 ## Скилл для Claude
 
 Скопируйте папку `skill/lecture-notes` в каталог скиллов (Claude Code: `~/.claude/skills/lecture-notes`, либо `.claude/skills/` в проекте). Дальше просто пишите агенту: «составь конспект по лекции <ссылка>».

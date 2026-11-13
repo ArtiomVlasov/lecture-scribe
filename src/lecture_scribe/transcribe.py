@@ -1,14 +1,24 @@
 """Whisper backend (faster-whisper) with a fake backend for tests."""
 from __future__ import annotations
 
+import wave
 from pathlib import Path
 from typing import Callable
+
+import numpy as np
 
 from . import config
 
 ProgressCb = Callable[[float], None]  # fraction 0..1
 
 _models: dict[str, object] = {}
+
+
+def _read_wav(path: Path) -> np.ndarray:
+    """16 kHz mono int16 wav -> float32 array (faster-whisper then does not need av to decode)."""
+    with wave.open(str(path), "rb") as w:
+        raw = w.readframes(w.getnframes())
+    return np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768.0
 
 
 def _load(model_name: str):
@@ -40,7 +50,7 @@ def transcribe(
     name = model or config.MODEL
     wm = _load(name)
     it, info = wm.transcribe(
-        str(wav),
+        _read_wav(wav),
         language=language,
         vad_filter=True,
         beam_size=5,
